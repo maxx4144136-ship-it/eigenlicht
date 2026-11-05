@@ -33,13 +33,14 @@ jobs:
         run: |
           git config user.name "Eigenlicht"
           git config user.email "eigenlicht@users.noreply.github.com"
-          if [ -n "$(git status --porcelain)" ]; then
-            git add -A
-            git commit -m "Bild $(date -u +%F)"
-            git push
-          else
+          git add -A
+          if git diff --cached --quiet; then
             echo "Heute gibt es schon ein Bild — nichts zu tun."
+            exit 0
           fi
+          git commit -m "Bild $(date -u +%F)"
+          git pull --rebase --autostash origin main
+          git push
 
   seite:
     needs: zeichnen

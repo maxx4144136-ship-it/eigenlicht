@@ -393,7 +393,7 @@ def write_site(repo: str) -> None:
         PAGE.format(
             haiku=html.escape(vers),
             cards=cards,
-            stamp=dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+            stamp=f"{latest} (letztes Bild)",
             count=len(files),
             repo=repo,
         ),
