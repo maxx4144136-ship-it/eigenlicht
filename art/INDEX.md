@@ -1,5 +1,6 @@
 # Archiv
 
-1 Bilder, eines pro Tag.
+2 Bilder, eines pro Tag.
 
+- [2026-10-24](2026-10-24.svg)
 - [2026-10-23](2026-10-23.svg)
