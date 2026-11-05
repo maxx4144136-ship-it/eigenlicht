@@ -1,0 +1,66 @@
+name: Tagesbild
+
+on:
+  schedule:
+    - cron: "17 6 * * *"   # 06:17 UTC, täglich
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  zeichnen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # die ganze Kette, nicht nur der letzte Commit
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Bild zeichnen
+        run: python generate.py --repo "$GITHUB_REPOSITORY"
+
+      - name: Commit und Push
+        run: |
+          git config user.name "Eigenlicht"
+          git config user.email "eigenlicht@users.noreply.github.com"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git commit -m "Bild $(date -u +%F)"
+            git push
+          else
+            echo "Heute gibt es schon ein Bild — nichts zu tun."
+          fi
+
+  seite:
+    needs: zeichnen
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+
+      - name: Nur die Seite einpacken
+        run: |
+          mkdir -p _site
+          cp index.html _site/
+          cp -r art _site/art
+          rm -f _site/art/INDEX.md
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
