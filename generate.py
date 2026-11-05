@@ -372,7 +372,7 @@ PAGE = """<!doctype html>
   <p class="haiku">{haiku}</p>
 </header>
 <main><div class="grid">{cards}</div></main>
-<footer>Stand {stamp} · {count} Bilder · Werkzeug:
+<footer>Stand {stamp} · {count} Bilder · <a href="wand.svg">Wand (A2-Poster)</a> · Werkzeug:
   <a href="https://github.com/{repo}">github.com/{repo}</a></footer>
 </body>
 </html>

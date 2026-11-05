@@ -29,6 +29,9 @@ jobs:
       - name: Bild zeichnen
         run: python generate.py --repo "$GITHUB_REPOSITORY"
 
+      - name: Wand legen
+        run: python3 wall.py --format a2
+
       - name: Commit und Push
         run: |
           git config user.name "Eigenlicht"
@@ -55,7 +58,7 @@ jobs:
       - name: Nur die Seite einpacken
         run: |
           mkdir -p _site
-          cp index.html _site/
+          cp index.html wand.svg _site/
           cp -r art _site/art
           rm -f _site/art/INDEX.md
 
