@@ -18,6 +18,7 @@ import argparse
 import base64
 import datetime as dt
 import pathlib
+import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent
@@ -29,6 +30,17 @@ FORMATS = {"a4": (210, 297), "a3": (297, 420), "a2": (420, 594), "a1": (594, 841
 INK = "#e9e6df"
 DIM = "#7f8697"
 LINE = "#232838"
+
+
+def printable(svg: str) -> str:
+    """
+    Fuer den Druck: Filter entfernen. feTurbulence und Blur zwingen den
+    Renderer, jedes Bild zu rastern — die PDF waechst dann auf zig MB und
+    die Vektoren sind weg. Ohne Filter bleibt alles Pfad und Schrift.
+    """
+    svg = re.sub(r"<filter\b[^>]*>.*?</filter>", "", svg, flags=re.S)
+    svg = re.sub(r'<(\w+)[^>]*filter="url\(#[^)]*\)"[^>]*/>', "", svg)
+    return svg
 
 
 def esc(s: str) -> str:
@@ -55,7 +67,7 @@ def grid_shape(n: int, w: float, h: float) -> tuple[int, int]:
     return best
 
 
-def build(files: list[pathlib.Path], fmt: str, maximum: int) -> str:
+def build(files: list[pathlib.Path], fmt: str, maximum: int, druck: bool = False) -> str:
     pw, ph = FORMATS[fmt]
     chosen = pick(files, maximum)
     n = len(chosen)
@@ -101,7 +113,10 @@ def build(files: list[pathlib.Path], fmt: str, maximum: int) -> str:
         c, r = idx % cols, idx // cols
         x = ox + c * (cell + gap)
         y = oy + r * (cell + cap + gap)
-        data = base64.b64encode(p.read_bytes()).decode()
+        raw = p.read_text(encoding="utf-8")
+        if druck:
+            raw = printable(raw)
+        data = base64.b64encode(raw.encode()).decode()
         out.append(
             f'<image x="{x:.2f}" y="{y:.2f}" width="{cell:.2f}" height="{cell:.2f}" '
             f'preserveAspectRatio="xMidYMid meet" href="data:image/svg+xml;base64,{data}"/>'
@@ -147,6 +162,8 @@ def main() -> int:
     ap.add_argument("--max", type=int, default=30, dest="maximum")
     ap.add_argument("--out", default=str(ROOT / "wand.svg"))
     ap.add_argument("--all", action="store_true", help="alle Bilder statt max. N")
+    ap.add_argument("--druck", action="store_true",
+                    help="ohne Filter/ Korn — bleibt vektoriell, kleinere PDF")
     a = ap.parse_args()
 
     files = sorted(ART.glob("*.svg"))
@@ -156,7 +173,7 @@ def main() -> int:
     if a.all:
         a.maximum = len(files)
 
-    svg = build(files, a.format, a.maximum)
+    svg = build(files, a.format, a.maximum, druck=a.druck)
     pathlib.Path(a.out).write_text(svg, encoding="utf-8")
     n = min(len(files), a.maximum)
     print(f"{a.format.upper()}: {n} von {len(files)} Bildern → {a.out} "

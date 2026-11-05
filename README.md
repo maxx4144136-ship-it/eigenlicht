@@ -53,6 +53,31 @@ einzige SVG-Datei ohne externe Ressourcen — kein Webfont, kein Bild, kein
 Skript. Sie lässt sich als Datei öffnen, in ein PDF legen oder in einen Satz
 drucken, und sie sieht überall gleich aus.
 
+## Die Wand
+
+`wall.py` legt das Archiv als druckbares Poster aus — A4, A3, A2 (Standard)
+oder A1, hochkant, in Millimetern gesetzt. Die Bilder werden als `data:`-URI
+eingebettet, damit das Poster eine einzige Datei bleibt und die Gradient-IDs
+der Einzelbilder sich nicht gegenseitig überschreiben.
+
+```bash
+python3 wall.py                        # wand.svg, A2, bis 30 Bilder
+python3 wall.py --format a3 --max 12
+python3 wall.py --all                  # alles, egal wie viele
+python3 wall.py --druck --out druck.svg   # ohne Filter, für PDF
+```
+
+Auswahl: Bei mehr als `--max` Bildern wird nicht das Ende genommen, sondern
+gleichmäßig über das gesamte Archiv verteilt — die Wand zeigt die ganze Zeit,
+nicht nur die letzte Woche.
+
+**Drucken.** `wand.svg` im Browser öffnen, Drucken, Papierformat A2, Skalierung
+„100 %" (nicht „an Seite anpassen") — die Datei ist bereits in Millimetern
+gesetzt. Für ein PDF `--druck` verwenden: die Körnung (`feTurbulence`) und die
+Weichzeichner zwingen den Renderer sonst, jedes Bild zu rastern; die PDF wächst
+auf ~35 MB und die Vektoren sind weg. Ohne Filter bleibt die Datei bei ~1,3 MB,
+komplett vektoriell, Text bleibt Text.
+
 ## Wie das Bild entsteht
 
 Drei Kompositionsarten werden aus dem Samen gewählt — `bloom`, `astrolabium`,
